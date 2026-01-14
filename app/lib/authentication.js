@@ -5,12 +5,12 @@ const authenticate = (req, res, next) => {
     const token = req.get('X-Authorization');
 
     if (!token) {
-        return res.status(401).send("No session token provided");
+        return res.status(401).json({"error_message": "No session token provided"});
     }
 
     users.getIDFromToken(token, (err, id) => {
         if (err || !id) {
-            return res.status(401).send("Invalid or expired session token");
+            return res.status(401).json({"error_message": "Invalid or expired session token"});
         }
 
         //Token is valid
