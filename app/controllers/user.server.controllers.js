@@ -33,10 +33,20 @@ const login = (req, res) => {
     const { email, password } = req.body;
 
     users.authenticateUser(email, password, (err, user_id) => {
+
+    // Invalid email or password
+    if (err === 404) {
+        return res.status(400).send({
+            error_message: "Invalid email or password"
+        });
+    }
+
+    // Server error
     if (err) {
         console.error("AUTH ERROR:", err);
         return res.status(500).send("Authentication error");
     }
+
 
 
         // Check if token already exists
@@ -44,14 +54,14 @@ const login = (req, res) => {
             if (err) return res.status(500).send("Error checking token");
 
             if (token) {
-                // already logged in
-                return res.status(200).send({ session_token: token });
+                // Already logged in
+                return res.status(200).send({ user_id: user_id, session_token: token });
             }
 
-            // Create a new token if deosnt exist
+            // Create a new token if doesn't exist
             users.setToken(user_id, (err, newToken) => {
                 if (err) return res.status(500).send("Error setting token");
-                return res.status(200).send({ session_token: newToken });
+                return res.status(200).send({ user_id: user_id, session_token: newToken });
             });
         });
     });
