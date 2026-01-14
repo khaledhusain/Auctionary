@@ -1,4 +1,5 @@
 const joi = require('joi');
+const coreModel = require('../models/core.server.models');
 
 const search_items = (req, res) => {
     return res.sendStatus(500);
@@ -22,8 +23,52 @@ const create_item = (req, res) => {
 };
 
 const get_item_by_id = (req, res) => {
-    return res.sendStatus(500);
+    const schema = joi.object({
+        item_id: joi.number().integer().positive().required()
+    });
+
+    const { error, value } = schema.validate(req.params);
+    if (error) {
+        return res.status(400).send({ error_message: error.details[0].message });
+    }
+
+    const itemId = value.item_id;
+
+    coreModel.getItemById(itemId, (err, item) => {
+        if (err) {
+            console.error("DB ERROR (getItemById):", err);
+            return res.status(500).send({ error_message: "Server error" });
+        }
+
+        if (!item) {
+            return res.status(404).send({ error_message: "Item not found" });
+        }
+
+        coreModel.getHighestBidForItem(itemId, (bidErr, highestBid) => {
+            if (bidErr) {
+                console.error("DB ERROR (getHighestBidForItem):", bidErr);
+                return res.status(500).send({ error_message: "Server error" });
+            }
+
+            if (item.description === null) item.description = '';
+
+            return res.status(200).send({
+                item_id: item.item_id,
+                name: item.name,
+                description: item.description,
+                starting_bid: item.starting_bid,
+                start_date: item.start_date,
+                end_date: item.end_date,
+                creator_id: item.creator_id,
+
+                // highest bid info (default bidder empty if none)
+                highest_bid: highestBid ? highestBid.amount : item.starting_bid,
+                highest_bidder_id: highestBid ? highestBid.user_id : ""
+            });
+        });
+    });
 };
+
 
 const place_bid = (req, res) => {
     const schema = joi.object({
