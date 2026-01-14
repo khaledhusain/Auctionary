@@ -113,10 +113,59 @@ const logout = (req, res) => {
 
 };
 
+const get_user_by_id = (req, res) => {
+  const schema = Joi.object({
+    user_id: Joi.number().integer().positive().required()
+  });
+
+  const { error, value } = schema.validate(req.params);
+  if (error) {
+    return res.status(400).send({ error_message: error.details[0].message });
+  }
+
+  const userId = value.user_id;
+
+  users.getUserById(userId, (err, userRow) => {
+    if (err) {
+      console.error("DB ERROR (getUserById):", err);
+      return res.status(500).send({ error_message: "Server error" });
+    }
+
+    if (!userRow) {
+      return res.status(404).send({ error_message: "User not found" });
+    }
+
+    users.getItemsCreatedByUser(userId, (itemsErr, items) => {
+      if (itemsErr) {
+        console.error("DB ERROR (getItemsCreatedByUser):", itemsErr);
+        return res.status(500).send({ error_message: "Server error" });
+      }
+
+      users.getBidsPlacedByUser(userId, (bidsErr, bids) => {
+        if (bidsErr) {
+          console.error("DB ERROR (getBidsPlacedByUser):", bidsErr);
+          return res.status(500).send({ error_message: "Server error" });
+        }
+
+        return res.status(200).send({
+          user_id: userRow.user_id,
+          first_name: userRow.first_name,
+          last_name: userRow.last_name,
+          email: userRow.email,
+          items: items,
+          bids: bids
+        });
+      });
+    });
+  });
+};
+
+
 module.exports = {
     create_account: create_account,
     login: login,
-    logout: logout
+    logout: logout,
+    get_user_by_id: get_user_by_id
 };
 
 

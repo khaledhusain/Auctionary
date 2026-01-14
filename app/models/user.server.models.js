@@ -79,13 +79,51 @@ const getIDFromToken = (token, done) => {
     });
 };
 
+const getUserById = (userId, done) => {
+  const sql = 'SELECT user_id, first_name, last_name, email FROM users WHERE user_id = ?';
+  db.get(sql, [userId], (err, row) => {
+    if (err) return done(err);
+    return done(null, row);
+  });
+};
+
+const getItemsCreatedByUser = (userId, done) => {
+  const sql = `
+    SELECT item_id, name, end_date
+    FROM items
+    WHERE creator_id = ?
+    ORDER BY end_date ASC
+  `;
+  db.all(sql, [userId], (err, rows) => {
+    if (err) return done(err);
+    return done(null, rows || []);
+  });
+};
+
+const getBidsPlacedByUser = (userId, done) => {
+  const sql = `
+    SELECT item_id, amount, timestamp
+    FROM bids
+    WHERE user_id = ?
+    ORDER BY timestamp DESC
+  `;
+  db.all(sql, [userId], (err, rows) => {
+    if (err) return done(err);
+    return done(null, rows || []);
+  });
+};
+
+
 module.exports = {
     addNewUser,
     authenticateUser,
     getToken,
     setToken,
     removeToken,
-    getIDFromToken
+    getIDFromToken,
+    getUserById,
+    getItemsCreatedByUser,
+    getBidsPlacedByUser
 };
 
 

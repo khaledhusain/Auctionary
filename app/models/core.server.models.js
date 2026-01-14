@@ -31,10 +31,18 @@ const getHighestBidForItem = (itemId, done) => {
 
 const getBidsForItem = (itemId, done) => {
   const sql = `
-    SELECT user_id, amount, timestamp
-    FROM bids
-    WHERE item_id = ?
-    ORDER BY amount DESC, timestamp DESC
+    SELECT 
+    b.item_id,
+    b.user_id,
+    u.first_name,
+    u.last_name,
+    b.amount,
+    b.timestamp
+    FROM bids b
+    JOIN users u ON u.user_id = b.user_id
+    WHERE b.item_id = ?
+    ORDER BY b.amount DESC, b.timestamp DESC
+
   `;
 
   db.all(sql, [itemId], (err, rows) => {
@@ -100,9 +108,6 @@ const searchItems = (filters, done) => {
   values.push(filters.user_id);
 }
 
-
-
-
   const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
 
   const sql = `
@@ -133,12 +138,55 @@ const searchItems = (filters, done) => {
   });
 };
 
+const createBid = (itemId, userId, amount, done) => {
+  const sql = `
+    INSERT INTO bids (item_id, user_id, amount, timestamp)
+    VALUES (?, ?, ?, ?)
+  `;
+  const values = [itemId, userId, amount, Date.now()];
 
+  db.run(sql, values, function (err) {
+    if (err) return done(err);
+    return done(null, this.lastID);
+  });
+};
+
+const getHighestBidWithBidder = (itemId, done) => {
+  const sql = `
+    SELECT b.amount, u.user_id, u.first_name, u.last_name
+    FROM bids b
+    JOIN users u ON u.user_id = b.user_id
+    WHERE b.item_id = ?
+    ORDER BY b.amount DESC, b.timestamp DESC
+    LIMIT 1
+  `;
+
+  db.get(sql, [itemId], (err, row) => {
+    if (err) return done(err);
+    return done(null, row); // undefined if no bids
+  });
+};
+
+const getItemCreator = (itemId, done) => {
+  const sql = `
+    SELECT u.user_id, u.first_name, u.last_name
+    FROM items i
+    JOIN users u ON u.user_id = i.creator_id
+    WHERE i.item_id = ?
+  `;
+  db.get(sql, [itemId], (err, row) => {
+    if (err) return done(err);
+    return done(null, row);
+  });
+};
 
 module.exports = {
   getItemById,
   getHighestBidForItem,
   getBidsForItem,
   createItem,
-  searchItems
+  searchItems,
+  createBid,
+  getHighestBidWithBidder,
+  getItemCreator
 };

@@ -5,6 +5,10 @@ module.exports = function(app) {
     app.route("/users")
         .post(users.create_account);
 
+    app.route("/user/:user_id")
+        .get(users.get_user_by_id);
+
+
     app.route("/login")
         .post(users.login);
 

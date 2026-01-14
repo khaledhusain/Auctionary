@@ -113,7 +113,6 @@ const create_item = (req, res) => {
     });
 };
 
-
 const get_item_by_id = (req, res) => {
     const schema = joi.object({
         item_id: joi.number().integer().positive().required()
@@ -127,6 +126,71 @@ const get_item_by_id = (req, res) => {
     const itemId = value.item_id;
 
     coreModel.getItemById(itemId, (err, item) => {
+        if (err) return res.status(500).send({ error_message: "Server error" });
+        if (!item) return res.status(404).send({ error_message: "Item not found" });
+
+        if (item.description === null) item.description = '';
+
+        coreModel.getHighestBidWithBidder(itemId, (bidErr, top) => {
+            if (bidErr) return res.status(500).send({ error_message: "Server error" });
+
+            // Get CREATOR details from user model (NOT coreModel)
+            users.getUserById(item.creator_id, (uErr, creator) => {
+                if (uErr) return res.status(500).send({ error_message: "Server error" });
+                if (!creator) return res.status(500).send({ error_message: "Server error" });
+
+                const holder = {
+                    user_id: creator.user_id,
+                    first_name: creator.first_name,
+                    last_name: creator.last_name
+                };
+
+                return res.status(200).send({
+                    item_id: item.item_id,
+                    name: item.name,
+                    description: item.description,
+                    starting_bid: item.starting_bid,
+                    start_date: item.start_date,
+                    end_date: item.end_date,
+                    creator_id: item.creator_id,
+
+                    current_bid: top ? top.amount : item.starting_bid,
+
+                    current_bid_holder: holder,
+                    ...holder
+                });
+            });
+        });
+    });
+};
+
+const place_bid = (req, res) => {
+    // validate item_id param
+    const paramsSchema = joi.object({
+        item_id: joi.number().integer().positive().required()
+    });
+
+    const { error: paramsError, value: paramsValue } = paramsSchema.validate(req.params);
+    if (paramsError) {
+        return res.status(400).send({ error_message: paramsError.details[0].message });
+    }
+
+    // validate body
+    const bodySchema = joi.object({
+        amount: joi.number().greater(0).required()
+    });
+
+    const { error: bodyError, value: bodyValue } = bodySchema.validate(req.body);
+    if (bodyError) {
+        return res.status(400).send({ error_message: bodyError.details[0].message });
+    }
+
+    const itemId = paramsValue.item_id;
+    const bidderId = req.authenticatedUserID;
+    const amount = Math.floor(bodyValue.amount);
+
+    // item must exist
+    coreModel.getItemById(itemId, (err, item) => {
         if (err) {
             console.error("DB ERROR (getItemById):", err);
             return res.status(500).send({ error_message: "Server error" });
@@ -136,45 +200,43 @@ const get_item_by_id = (req, res) => {
             return res.status(404).send({ error_message: "Item not found" });
         }
 
+        // cannot bid on own item
+        if (item.creator_id === bidderId) {
+            return res.status(403).send({ error_message: "Cannot bid on your own item" });
+        }
+
+        // auction must still be open
+        if (item.end_date <= Date.now()) {
+            return res.status(403).send({ error_message: "Auction is closed" });
+        }
+
+        // current bid = highest bid if exists else starting bid
         coreModel.getHighestBidForItem(itemId, (bidErr, highestBid) => {
             if (bidErr) {
                 console.error("DB ERROR (getHighestBidForItem):", bidErr);
                 return res.status(500).send({ error_message: "Server error" });
             }
 
-            if (item.description === null) item.description = '';
+            const current = highestBid ? highestBid.amount : item.starting_bid;
 
-            return res.status(200).send({
-                item_id: item.item_id,
-                name: item.name,
-                description: item.description,
-                starting_bid: item.starting_bid,
-                start_date: item.start_date,
-                end_date: item.end_date,
-                creator_id: item.creator_id,
+            // must be greater than current
+            if (amount <= current) {
+                return res.status(400).send({ error_message: "Bid amount must be greater than current bid" });
+            }
 
-                // highest bid info (default bidder empty if none)
-                highest_bid: highestBid ? highestBid.amount : item.starting_bid,
-                highest_bidder_id: highestBid ? highestBid.user_id : ""
+            // insert bid
+            coreModel.createBid(itemId, bidderId, amount, (insErr) => {
+                if (insErr) {
+                    console.error("DB ERROR (createBid):", insErr);
+                    return res.status(500).send({ error_message: "Server error" });
+                }
+
+                return res.sendStatus(201);
             });
         });
     });
 };
 
-
-const place_bid = (req, res) => {
-    const schema = joi.object({
-    amount: joi.number().greater(0).required()
-    });
-
-    const { error } = schema.validate(req.body);
-
-    if (error) {
-        return res.status(400).send({ error_message: error.details[0].message });
-    }
-
-    return res.sendStatus(500);
-};
 
 const get_bids_for_item = (req, res) => {
     const schema = joi.object({
@@ -207,12 +269,17 @@ const get_bids_for_item = (req, res) => {
 
             // return bid history (empty array if none)
             return res.status(200).send(
-                bids.map(b => ({
-                    bidder_id: b.user_id,
-                    amount: b.amount,
-                    timestamp: b.timestamp
-                }))
+            bids.map(b => ({
+                item_id: b.item_id,
+                user_id: b.user_id,
+                bidder_id: b.user_id,
+                first_name: b.first_name,
+                last_name: b.last_name,
+                amount: b.amount,
+                timestamp: b.timestamp
+            }))
             );
+
         });
     });
 };
