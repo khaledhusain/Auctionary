@@ -1,11 +1,12 @@
 const joi = require('joi');
 const coreModel = require('../models/core.server.models');
+const users = require('../models/user.server.models');
+
 
 const search_items = (req, res) => {
     const schema = joi.object({
         q: joi.string().allow('').optional(),
-        status: joi.string().valid("OPEN", "CLOSED", "ALL").optional(),
-        sort_by: joi.string().valid("END_DATE", "ALPHABETICAL", "HIGHEST_BID").optional(),
+        status: joi.string().valid("OPEN", "BID", "ARCHIVE").optional(),
         limit: joi.number().integer().min(1).max(100).optional(),
         offset: joi.number().integer().min(0).optional()
     }).unknown(true);
@@ -17,15 +18,50 @@ const search_items = (req, res) => {
 
     const filters = {
         q: value.q && value.q.trim() !== "" ? value.q.trim() : null,
-        status: value.status && value.status !== "ALL" ? value.status : null,
-        sort_by: value.sort_by || "END_DATE",
-        limit: value.limit || 20,
+        status: value.status || null,
+        user_id: null,
+        limit: value.limit || 10,
         offset: value.offset || 0
     };
 
-    coreModel.searchItems(filters, (err, rows) => {
-        if (err) {
-            console.error("DB ERROR (searchItems):", err);
+    // So we manually validate X-Authorization for status searches.
+    if (filters.status) {
+        const token = req.get('X-Authorization');
+        if (!token) {
+            return res.status(400).send({ error_message: "Authentication required for status filter" });
+        }
+
+        return users.getIDFromToken(token, (authErr, userId) => {
+            if (authErr || !userId) {
+                return res.status(400).send({ error_message: "Authentication required for status filter" });
+            }
+
+            filters.user_id = userId;
+
+            coreModel.searchItems(filters, (dbErr, rows) => {
+                if (dbErr) {
+                    console.error("DB ERROR (searchItems):", dbErr);
+                    return res.status(500).send({ error_message: "Server error" });
+                }
+
+                return res.status(200).send(rows.map(r => ({
+                    item_id: r.item_id,
+                    name: r.name,
+                    description: r.description,
+                    end_date: r.end_date,
+                    highest_bid: r.highest_bid,
+                    creator_id: r.creator_id,
+                    first_name: r.first_name,
+                    last_name: r.last_name
+                })));
+            });
+        });
+    }
+
+    // No status filter: public search
+    coreModel.searchItems(filters, (dbErr, rows) => {
+        if (dbErr) {
+            console.error("DB ERROR (searchItems):", dbErr);
             return res.status(500).send({ error_message: "Server error" });
         }
 
@@ -33,17 +69,22 @@ const search_items = (req, res) => {
         return res.status(200).send(rows.map(r => ({
             item_id: r.item_id,
             name: r.name,
+            description: r.description,
             end_date: r.end_date,
-            highest_bid: r.highest_bid
+            highest_bid: r.highest_bid,
+            creator_id: r.creator_id,
+            first_name: r.first_name,
+            last_name: r.last_name
         })));
     });
 };
 
 
+
 const create_item = (req, res) => {
     const schema = joi.object({
         name: joi.string().min(1).required(),
-        description: joi.string().allow('', null),
+        description: joi.string().min(1).required(),
         starting_bid: joi.number().greater(0).required(),
         end_date: joi.date().greater('now').required()
     });
