@@ -2,21 +2,44 @@ const Joi = require('joi');
 const users = require('../models/user.server.models');
 
 const create_account = (req, res) => {
+    const schema = Joi.object({
+        first_name: Joi.string().trim().min(1).required(),
+        last_name: Joi.string().trim().min(1).required(),
+        email: Joi.string().trim().email().required(),
+        password: Joi.string()
+            .min(6)
+            .max(30)
+            .pattern(/[0-9]/)           // at least one number
+            .pattern(/[A-Z]/)           // at least one uppercase
+            .pattern(/[a-z]/)           // at least one lowercase
+            .pattern(/[^A-Za-z0-9]/)    // at least one special character
+            .required()
+    }).unknown(false);
+
+    const { error, value } = schema.validate(req.body);
+    if (error) {
+        return res.status(400).send({ error_message: error.details[0].message });
+    }
+
     const user = {
-        first_name: req.body.first_name,
-        last_name: req.body.last_name,
-        email: req.body.email,
-        password: req.body.password
+        first_name: value.first_name,
+        last_name: value.last_name,
+        email: value.email,
+        password: value.password
     };
 
     users.addNewUser(user, (err, id) => {
         if (err) {
+            if (err.code === 'SQLITE_CONSTRAINT') {
+                return res.status(400).send({ error_message: "Email already in use" });
+            }
             console.error("SQL Error:", err.message);
-            return res.status(400).send("Error creating user");
+            return res.status(500).send({ error_message: "Server error" });
         }
-        res.status(201).send({ user_id: id });
+        return res.status(201).send({ user_id: id });
     });
 };
+
 
 const login = (req, res) => {
     
