@@ -15,7 +15,7 @@ const create_item = (req, res) => {
     const { error } = schema.validate(req.body);
 
     if (error) {
-        return res.status(400).send({ error: error.details[0].message });
+        return res.status(400).send({ error_message: error.details[0].message });
     }
 
     return res.sendStatus(500);
@@ -33,7 +33,7 @@ const place_bid = (req, res) => {
     const { error } = schema.validate(req.body);
 
     if (error) {
-        return res.status(400).send({ error: error.details[0].message });
+        return res.status(400).send({ error_message: error.details[0].message });
     }
 
     return res.sendStatus(500);
