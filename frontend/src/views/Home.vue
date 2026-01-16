@@ -2,6 +2,16 @@
   <div>
     <h1>Home</h1>
 
+    <div class="search-bar">
+      <input
+        v-model="searchTerm"
+        type="text"
+        placeholder="Search items"
+      />
+      <button @click="search">Search</button>
+      
+    </div>
+
     <button @click="loadItems">Reload items</button>
 
     <p v-if="loading">Loading...</p>
@@ -18,17 +28,40 @@
 </template>
 
 <script>
+import api from "../services/api";
+
 export default {
   data() {
     return {
       items: [],
       loading: false,
       error: "",
+      searchTerm: "",
+      searchTimeout: null,
     };
   },
 
   async mounted() {
     await this.loadItems();
+  },
+
+  watch: {
+    searchTerm(newVal) {
+      clearTimeout(this.searchTimeout);
+
+      this.searchTimeout = setTimeout(async () => {
+        if (newVal.trim() === "") {
+          await this.loadItems();
+        } else {
+          try {
+            this.items = await api.searchItems(newVal);
+          } catch (err) {
+            this.error = err.message;
+            this.items = [];
+          }
+        }
+      }, 300);
+    },
   },
 
   methods: {
@@ -52,6 +85,14 @@ export default {
         this.items = [];
       } finally {
         this.loading = false;
+      }
+    },
+
+    async search() {
+      try {
+        this.items = await api.searchItems(this.searchTerm);
+      } catch (err) {
+        alert(err.message);
       }
     },
   },

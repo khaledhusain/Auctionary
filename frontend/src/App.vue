@@ -5,9 +5,9 @@
       |
       <router-link to="/login">Login</router-link>
       |
-      <router-link to="/comments">Comments</router-link>
-      |
       <button v-if="isLoggedIn" @click="logout">Logout</button>
+      |
+      <router-link to="/create">Create Item</router-link>
     </nav>
 
     <router-view />

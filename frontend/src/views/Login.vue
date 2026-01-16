@@ -19,7 +19,7 @@
 
       <div v-if="error">{{ error }}</div>
 
-      <p>{{ email1 }} + {{ password }}</p>
+      <!-- <p>{{ email1 }} + {{ password }}</p> -->
     </form>
   </div>
 </template>
