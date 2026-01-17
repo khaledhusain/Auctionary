@@ -114,6 +114,7 @@ export default {
           password,
         });
 
+
         this.first_name = "";
         this.last_name = "";
         this.email = "";

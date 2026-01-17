@@ -444,6 +444,7 @@ main.page {
 }
 
 .form-success {
+  margin-top: 10px;
   margin-bottom: 12px;
   font-size: 14px;
   color: #0b6b0b;
@@ -625,4 +626,3 @@ a.btn:hover,
 a.btn:active {
   color: #fff;
 }
-
