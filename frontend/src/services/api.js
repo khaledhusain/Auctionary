@@ -69,11 +69,11 @@ function askQuestion(itemId, question_text) {
 }
 
 // Answer question (requires auth)
-function answerQuestion(itemId, questionId, answer_text) {
+function answerQuestion(questionId, answer_text) {
   const token = localStorage.getItem("session_token");
 
   return post(
-    `/item/${itemId}/question/${questionId}`,
+    `/question/${questionId}`,
     { answer_text },
     { "X-Authorization": token }
   );

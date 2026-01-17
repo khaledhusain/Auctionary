@@ -568,14 +568,14 @@ main.page {
 .q-ask,
 .q-reply {
   display: flex;
-  gap: 12px;
+  gap: 2px;
   align-items: center;
   max-width: 900px;
   margin: 12px 0;
 }
 
 .q-row {
-  padding: 16px;
+  padding: 20px;
   border-bottom: 1px solid #000;
 }
 
@@ -584,6 +584,11 @@ main.page {
 }
 
 .q-answer {
+  margin-top: 10px;
+  font-weight: 500;
+}
+
+.q-answer-text {
   margin-top: 10px;
 }
 
@@ -620,3 +625,4 @@ a.btn:hover,
 a.btn:active {
   color: #fff;
 }
+

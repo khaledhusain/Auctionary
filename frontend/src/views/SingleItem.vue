@@ -94,25 +94,27 @@
       </div>
 
       <div class="list-box">
-        <div class="q-row" v-for="q in questions" :key="q.question_id">
-          <div class="q-question">
-            <span class="list-strong">{{ q.question_text || q.question }}</span>
-          </div>
+          <div class="q-row" v-for="q in questions" :key="q.question_id">
+            <div class="q-question">
+              <span class="list-strong">{{ q.question_text || q.question }}</span>
+            </div>
 
-          <div class="q-answer" v-if="q.answer_text || q.answer">
-            <span class="muted">Answer:</span> {{ q.answer_text || q.answer }}
-          </div>
+            <div class="q-answer" v-if="q.answer_text || q.answer">
+              <div class="q-answer-label">Answer:</div>
+              <div class="q-answer-text">{{ q.answer_text || q.answer }}</div>
+            </div>
 
-          <div v-if="isLoggedIn && !(q.answer_text || q.answer)" class="q-reply">
-            <input
-              class="form-input"
-              v-model="answerDrafts[q.question_id]"
-              placeholder="Write an answer..."
-            />
-            <button class="btn" type="button" @click="submitAnswer(q.question_id)">Answer</button>
+            <div v-if="isLoggedIn && !(q.answer_text || q.answer)" class="q-reply">
+              <input
+                class="form-input"
+                v-model="answerDrafts[q.question_id]"
+                placeholder="Write an answer..."
+              />
+              <button class="btn" type="button" @click="submitAnswer(q.question_id)">
+                Answer
+              </button>
+            </div>
           </div>
-        </div>
-
         <div class="muted" v-if="questions.length === 0">No questions yet.</div>
       </div>
     </div>
@@ -265,7 +267,7 @@ export default {
         const text = (this.answerDrafts[questionId] || "").trim();
         if (!text) return;
 
-        await api.answerQuestion(this.itemId, questionId, text);
+        await api.answerQuestion(questionId, text);
         this.answerDrafts[questionId] = "";
         await this.loadQuestions();
       } catch (e) {
