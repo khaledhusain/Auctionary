@@ -1,81 +1,122 @@
 <template>
-  <div>
-    <h1>Item {{ itemId }}</h1>
-
-    <p v-if="loading">Loading...</p>
-    <p v-if="error" style="color:red">{{ error }}</p>
-
-    <div v-if="item && !loading">
-      <p><strong>Name:</strong> {{ item.name }}</p>
-      <p><strong>Description:</strong> {{ item.description }}</p>
-      <p><strong>Current Bid:</strong> {{ item.current_bid }}</p>
-    </div>
-  </div>
-
-  <hr />
-
-  <h2>Place a bid</h2>
-
-  <form @submit.prevent="submitBid">
-    <input
-      type="number"
-      min="1"
-      step="1"
-      v-model="bid_amount"
-      placeholder="Enter bid amount"
-    />
-    <button type="submit">Bid</button>
-  </form>
-
-  <p v-if="bid_success" style="color: green;">{{ bid_success }}</p>
-
-  <hr />
-
-  <h2>Bid history</h2>
-
-  <p v-if="bids_loading">Loading bids...</p>
-  <p v-if="bids_error" style="color:red">{{ bids_error }}</p>
-
-  <ul v-if="!bids_loading && !bids_error">
-    <li v-for="b in bids" :key="`${b.user_id}-${b.amount}-${b.timestamp || ''}`">
-      <span>
-        {{ b.first_name }} {{ b.last_name }}:
-        <strong>{{ b.amount }}</strong>
-      </span>
-      <span v-if="b.timestamp"> ({{ formatTime(b.timestamp) }})</span>
-    </li>
-
-    <li v-if="bids.length === 0">No bids yet.</li>
-</ul>
-
-    <h2>Questions</h2>
-
-    <p v-if="qError" style="color:red">{{ qError }}</p>
-
-    <div v-if="isLoggedIn" style="margin-bottom: 12px;">
-      <input v-model="newQuestion" placeholder="Ask a question..." />
-      <button @click="submitQuestion">Ask</button>
-    </div>
-    <div v-else>
-      <small>You must be logged in to ask/answer questions.</small>
+  <div class="detail-page">
+    <div class="detail-header">
+      <h1 class="detail-title">Item {{ itemId }}</h1>
     </div>
 
-    <ul>
-      <li v-for="q in questions" :key="q.question_id" style="margin-bottom: 12px;">
-        <div>
-          <strong>{{ q.question_text || q.question }}</strong>
-          <div v-if="q.answer_text || q.answer" style="margin-top: 6px;">
-            Answer: {{ q.answer_text || q.answer }}
+    <div class="detail-divider"></div>
+
+    <p v-if="loading" class="muted">Loading...</p>
+    <p v-if="error" class="form-error">{{ error }}</p>
+
+    <div v-if="item && !loading" class="detail-box">
+      <div class="detail-row">
+        <div class="detail-label">Name</div>
+        <div class="detail-value">{{ item.name }}</div>
+      </div>
+
+      <div class="detail-row">
+        <div class="detail-label">Description</div>
+        <div class="detail-value">{{ item.description }}</div>
+      </div>
+
+      <div class="detail-row">
+        <div class="detail-label">Current Bid</div>
+        <div class="detail-value"><strong>{{ item.current_bid }}</strong></div>
+      </div>
+
+      <div class="detail-row" v-if="item.end_date">
+        <div class="detail-label">End Date</div>
+        <div class="detail-value">{{ formatIsoDate(item.end_date) }}</div>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <div class="section">
+      <h2 class="section-title">Place a bid</h2>
+
+      <form class="inline-form" @submit.prevent="submitBid">
+        <input
+          class="form-input"
+          type="number"
+          min="1"
+          step="1"
+          v-model="bid_amount"
+          placeholder="Enter bid amount"
+        />
+        <button class="btn" type="submit">Bid</button>
+      </form>
+
+      <p v-if="bid_success" class="form-success">{{ bid_success }}</p>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <div class="section">
+      <h2 class="section-title">Bid history</h2>
+
+      <p v-if="bids_loading" class="muted">Loading bids...</p>
+      <p v-if="bids_error" class="form-error">{{ bids_error }}</p>
+
+      <div v-if="!bids_loading && !bids_error" class="list-box">
+        <div
+          class="list-row"
+          v-for="b in bids"
+          :key="`${b.user_id}-${b.amount}-${b.timestamp || ''}`"
+        >
+          <div class="list-main">
+            <span class="list-strong">{{ b.first_name }} {{ b.last_name }}</span>
+            <span class="muted">bid</span>
+            <span class="list-strong">{{ b.amount }}</span>
+          </div>
+          <div class="list-meta" v-if="b.timestamp">{{ formatTime(b.timestamp) }}</div>
+        </div>
+
+        <div class="muted" v-if="bids.length === 0">No bids yet.</div>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <div class="section">
+      <h2 class="section-title">Questions</h2>
+
+      <p v-if="qError" class="form-error">{{ qError }}</p>
+
+      <div v-if="isLoggedIn" class="q-ask">
+        <input class="form-input" v-model="newQuestion" placeholder="Ask a question..." />
+        <button class="btn" type="button" @click="submitQuestion">Ask</button>
+      </div>
+
+      <div v-else class="muted">
+        You must be logged in to ask/answer questions.
+      </div>
+
+      <div class="list-box">
+        <div class="q-row" v-for="q in questions" :key="q.question_id">
+          <div class="q-question">
+            <span class="list-strong">{{ q.question_text || q.question }}</span>
+          </div>
+
+          <div class="q-answer" v-if="q.answer_text || q.answer">
+            <span class="muted">Answer:</span> {{ q.answer_text || q.answer }}
+          </div>
+
+          <div v-if="isLoggedIn && !(q.answer_text || q.answer)" class="q-reply">
+            <input
+              class="form-input"
+              v-model="answerDrafts[q.question_id]"
+              placeholder="Write an answer..."
+            />
+            <button class="btn" type="button" @click="submitAnswer(q.question_id)">Answer</button>
           </div>
         </div>
 
-        <div v-if="isLoggedIn && !(q.answer_text || q.answer)" style="margin-top: 6px;">
-          <input v-model="answerDrafts[q.question_id]" placeholder="Write an answer..." />
-          <button @click="submitAnswer(q.question_id)">Answer</button>
-        </div>
-      </li>
-    </ul>
-
+        <div class="muted" v-if="questions.length === 0">No questions yet.</div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -136,6 +177,12 @@ export default {
       } finally {
         this.loading = false;
       }
+    },
+
+    formatIsoDate(iso) {
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return iso;
+      return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "2-digit" });
     },
 
     formatTime(ts) {

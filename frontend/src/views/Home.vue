@@ -1,30 +1,57 @@
 <template>
-  <div>
-    <h1>Home</h1>
-
-    <div class="search-bar">
+<div class="home">
+  <div class="home-search">
+    <div class="search-joined">
       <input
         v-model="searchTerm"
         type="text"
-        placeholder="Search items"
+        placeholder="Search Auctionary"
+        class="search-joined-input"
       />
-      <button @click="search">Search</button>
-      
+      <button class="search-joined-btn" @click="search" aria-label="Search">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <path
+            d="M10.5 18a7.5 7.5 0 1 1 5.2-12.9A7.5 7.5 0 0 1 10.5 18Zm0-2a5.5 5.5 0 1 0-3.9-1.6A5.5 5.5 0 0 0 10.5 16Zm7.8 5.4-4.2-4.2 1.4-1.4 4.2 4.2-1.4 1.4Z"
+            fill="currentColor"
+          />
+        </svg>
+      </button>
     </div>
 
-    <button @click="loadItems">Reload items</button>
-
-    <p v-if="loading">Loading...</p>
-    <p v-if="error" style="color: red;">{{ error }}</p>
-
-    <ul v-if="!loading && !error">
-      <li v-for="item in items" :key="item.item_id">
-        <router-link :to="`/item/${item.item_id}`">
-          {{ item.item_id }} - {{ item.name }}
-        </router-link>
-      </li>
-    </ul>
+    <!-- META LINE GOES HERE -->
+    <div class="home-meta">
+      {{ items.length }} active auctions
+    </div>
   </div>
+
+  <!-- ITEMS stay below (leave them as-is for now) -->
+  <ul class="home-items">
+    <!-- your v-for items -->
+  </ul>
+
+  <p v-if="loading">Loading...</p>
+  <p v-if="error" class="home-error">{{ error }}</p>
+
+<div class="item-list">
+  <router-link
+    v-for="item in items"
+    :key="item.item_id"
+    :to="`/item/${item.item_id}`"
+    class="item-card"
+  >
+
+  <div class="item-title">
+    {{ item.name }}
+  </div>
+
+  <div class="item-desc" v-if="item.description">
+    {{ item.description }}
+  </div>
+
+  </router-link>
+</div>
+
+</div>
 </template>
 
 <script>

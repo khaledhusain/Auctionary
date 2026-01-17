@@ -1,33 +1,37 @@
 <template>
-  <div>
-    <h1>Create Item</h1>
+  <div class="form-page">
+    <h1 class="form-title">List Item</h1>
 
-    <p v-if="error" style="color:red">{{ error }}</p>
-    <p v-if="success" style="color:green">{{ success }}</p>
+    <div class="form-box">
+      <div v-if="error" class="form-error">{{ error }}</div>
+      <div v-if="success" class="form-success">{{ success }}</div>
 
-    <form @submit.prevent="submit">
-      <div>
-        <label>Name:</label>
-        <input v-model="name" type="text" />
-      </div>
+      <form @submit.prevent="submit">
+        <div class="form-row">
+          <label class="form-label">Name</label>
+          <input class="form-input" v-model="name" type="text" />
+        </div>
 
-      <div>
-        <label>Description:</label>
-        <input v-model="description" type="text" />
-      </div>
+        <div class="form-row">
+          <label class="form-label">Description</label>
+          <textarea class="form-textarea" v-model="description"></textarea>
+        </div>
 
-      <div>
-        <label>Starting Bid:</label>
-        <input v-model.number="starting_bid" type="number" min="1" />
-      </div>
+        <div class="form-row">
+          <label class="form-label">Starting Bid</label>
+          <input class="form-input" v-model.number="starting_bid" type="number" min="1" />
+        </div>
 
-      <div>
-        <label>End Date (ISO):</label>
-        <input v-model="end_date" type="text" placeholder="2026-12-31T23:59:59.000Z" />
-      </div>
+        <div class="form-row">
+          <label class="form-label">End Date</label>
+          <input class="form-input" v-model="end_date" type="date" />
+        </div>
 
-      <button type="submit">Create</button>
-    </form>
+        <div class="form-actions">
+          <button class="btn" type="submit">List</button>
+        </div>
+      </form>
+    </div>
   </div>
 </template>
 
@@ -46,6 +50,14 @@ export default {
     };
   },
   methods: {
+    toIso(value) {
+      if (!value) return "";
+
+      // YYYY-MM-DD
+      const dt = new Date(value + "T00:00:00");
+      return dt.toISOString();
+    },
+
     async submit() {
       this.error = "";
       this.success = "";
@@ -55,7 +67,7 @@ export default {
           name: this.name,
           description: this.description,
           starting_bid: this.starting_bid,
-          end_date: this.end_date
+          end_date: this.toIso(this.end_date)
         });
 
         this.success = "Item created.";

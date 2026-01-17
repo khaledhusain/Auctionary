@@ -1,26 +1,42 @@
 <template>
-  <div>
-    <h1>Login</h1>
+  <div class="form-page">
+    <h1 class="form-title">Login</h1>
 
-    <form v-on:submit.prevent="handleSubmit">
-      <label for="email1">Email:</label>
-      <input type="email" id="email1" name="email1" v-model="email1" />
-      <div v-show="submitted && !email1">Email is required</div>
+    <div class="form-box">
+      <form v-on:submit.prevent="handleSubmit">
+        <div class="form-row">
+          <label class="form-label" for="email1">Email</label>
+          <input
+            class="form-input"
+            type="email"
+            id="email1"
+            name="email1"
+            v-model="email1"
+          />
+          <div class="form-error" v-show="submitted && !email1">Email is required</div>
+        </div>
 
-      <br /><br />
+        <div class="form-row">
+          <label class="form-label" for="password">Password</label>
+          <input
+            class="form-input"
+            type="password"
+            id="password"
+            name="password"
+            v-model="password"
+          />
+          <div class="form-error" v-show="submitted && !password">Password is required</div>
+        </div>
 
-      <label for="password">Password:</label>
-      <input type="password" id="password" name="password" v-model="password" />
-      <div v-show="submitted && !password">Password is required</div>
+        <div class="form-actions">
+          <button class="btn" type="submit">Login</button>
+        </div>
 
-      <br /><br />
+        <div class="form-error" v-if="error">{{ error }}</div>
 
-      <button>Login</button>
-
-      <div v-if="error">{{ error }}</div>
-
-      <!-- <p>{{ email1 }} + {{ password }}</p> -->
-    </form>
+        <!-- <p>{{ email1 }} + {{ password }}</p> -->
+      </form>
+    </div>
   </div>
 </template>
 
