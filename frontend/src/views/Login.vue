@@ -3,6 +3,8 @@
     <h1 class="form-title">Login</h1>
 
     <div class="form-box">
+      <!-- <div class="form-success" v-if="success">{{ success }}</div> -->
+      <div class="form-error" v-if="error">{{ error }}</div>
       <form v-on:submit.prevent="handleSubmit">
         <div class="form-row">
           <label class="form-label" for="email1">Email</label>
@@ -32,6 +34,11 @@
           <button class="btn" type="submit">Login</button>
         </div>
 
+        <div class="form-actions" v-if="!isLoggedIn">
+          <router-link class="btn" to="/register">Create Account</router-link>
+        </div>
+
+        <div class="form-success" v-if="success">{{ success }}</div>
         <div class="form-error" v-if="error">{{ error }}</div>
 
         <!-- <p>{{ email1 }} + {{ password }}</p> -->
@@ -45,18 +52,33 @@ import api from "../services/api";
 import EmailValidator from "email-validator";
 
 export default {
-  data() {
-    return {
-      email1: "",
-      password: "",
-      submitted: false,
-      error: "",
-    };
+data() {
+  return {
+    email1: "",
+    password: "",
+    submitted: false,
+    error: "",
+    success : "",
+  }; 
+},
+
+mounted() {
+  if (this.$route.query.created) {
+    this.success = "Account created. Please log in.";
+    this.$router.replace({ path: "/login" });
+  }
+},
+
+computed: {
+  isLoggedIn() {
+    return !!localStorage.getItem("session_token");
   },
+},
   methods: {
     async handleSubmit() {
       this.submitted = true;
       this.error = "";
+      this.success = "";
 
       const { email1, password } = this;
 
@@ -79,7 +101,9 @@ export default {
         localStorage.setItem("user_id", data.user_id);
         localStorage.setItem("session_token", data.session_token);
 
-        alert("Logged in!");
+        this.$router.push({ path: "/", query: { logged: "1" } });
+        return;
+
       } catch (e) {
         this.error = e.message || "Login failed";
       }

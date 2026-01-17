@@ -1,5 +1,6 @@
 <template>
 <div class="home">
+  <div class="form-success" v-if="flashSuccess">{{ flashSuccess }}</div>
   <div class="home-search">
     <div class="search-joined">
       <input
@@ -18,16 +19,12 @@
       </button>
     </div>
 
-    <!-- META LINE GOES HERE -->
     <div class="home-meta">
       {{ items.length }} active auctions
     </div>
   </div>
-
-  <!-- ITEMS stay below (leave them as-is for now) -->
-  <ul class="home-items">
-    <!-- your v-for items -->
-  </ul>
+    <ul class="home-items">
+    </ul>
 
   <p v-if="loading">Loading...</p>
   <p v-if="error" class="home-error">{{ error }}</p>
@@ -65,12 +62,19 @@ export default {
       error: "",
       searchTerm: "",
       searchTimeout: null,
+      flashSuccess: "",
     };
   },
 
   async mounted() {
     await this.loadItems();
   },
+    //   mounted() {
+    //   if (this.$route.query.logged) {
+    //     this.flashSuccess = "Logged in successfully.";
+    //     this.$router.replace({ path: "/" });
+    //   }
+    // },
 
   watch: {
     searchTerm(newVal) {
@@ -120,6 +124,13 @@ export default {
         this.items = await api.searchItems(this.searchTerm);
       } catch (err) {
         alert(err.message);
+      }
+    },
+
+    mounted() {
+      if (this.$route.query.logged) {
+        this.flashSuccess = "Logged in successfully.";
+        this.$router.replace({ path: "/" });
       }
     },
   },

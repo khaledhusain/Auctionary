@@ -22,7 +22,7 @@
 
       <div class="detail-row">
         <div class="detail-label">Current Bid</div>
-        <div class="detail-value"><strong>{{ item.current_bid }}</strong></div>
+        <div class="detail-value"><strong>{{ formatCurrency(item.current_bid) }}</strong></div>
       </div>
 
       <div class="detail-row" v-if="item.end_date">
@@ -240,7 +240,6 @@ export default {
       try {
         const data = await api.getQuestionsForItem(this.itemId);
 
-        // backend might return { questions: [...] } or just [...]
         this.questions = Array.isArray(data) ? data : (data.questions || []);
       } catch (e) {
         this.qError = e.message;
@@ -266,12 +265,19 @@ export default {
         const text = (this.answerDrafts[questionId] || "").trim();
         if (!text) return;
 
-        await api.answerQuestion(questionId, text);
+        await api.answerQuestion(this.itemId, questionId, text);
         this.answerDrafts[questionId] = "";
         await this.loadQuestions();
       } catch (e) {
         this.qError = e.message;
       }
+    },
+
+    formatCurrency(amount) {
+      return new Intl.NumberFormat("en-GB", {
+        style: "currency",
+        currency: "GBP",
+      }).format(amount);
     },
   },
 };

@@ -604,3 +604,19 @@ main.page {
   min-height: 64px;
 }
 
+.form-actions {
+  display: flex;
+  gap: 12px;
+}
+
+a.btn,
+a.btn:link,
+a.btn:visited {
+  color: #000;
+  text-decoration: none;
+}
+
+a.btn:hover,
+a.btn:active {
+  color: #fff;
+}

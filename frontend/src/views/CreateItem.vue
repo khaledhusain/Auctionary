@@ -18,7 +18,7 @@
         </div>
 
         <div class="form-row">
-          <label class="form-label">Starting Bid</label>
+          <label class="form-label">Starting Bid in GBP</label>
           <input class="form-input" v-model.number="starting_bid" type="number" min="1" />
         </div>
 
@@ -56,6 +56,13 @@ export default {
       // YYYY-MM-DD
       const dt = new Date(value + "T00:00:00");
       return dt.toISOString();
+    },
+
+    formatCurrency(amount) {
+      return new Intl.NumberFormat("en-GB", {
+        style: "currency",
+        currency: "GBP",
+      }).format(amount);
     },
 
     async submit() {
