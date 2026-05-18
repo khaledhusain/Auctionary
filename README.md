@@ -44,21 +44,33 @@ The project emphasizes **backend architecture**: REST endpoint design, request v
 
 ## Screenshots
 
-### Homepage / Listings
+### Landing page
 
-<!-- Add screenshot: Auctionary homepage with search bar and item cards (e.g. docs/screenshots/home.png) -->
+<img src="screenshots/hero.png" alt="Auctionary landing page with hero and navigation" width="800" />
 
-### Auction Item Page
+### Browse auctions
 
-<!-- Add screenshot: Single item view with current bid, bid form, and Q&A (e.g. docs/screenshots/item.png) -->
+Search and active listings on the home view.
 
-### Bid System
+<img src="screenshots/auctions-list.png" alt="Search bar and list of active auction items" width="800" />
 
-<!-- Add screenshot: Bid placement and bid history on item page (e.g. docs/screenshots/bids.png) -->
+### Item details
 
-### User Authentication
+Single listing with current bid, end date, and bid form.
 
-<!-- Add screenshot: Login and registration views (e.g. docs/screenshots/auth.png) -->
+<img src="screenshots/view-item.png" alt="Auction item page showing details and place a bid" width="800" />
+
+### Bidding and questions
+
+Bid history, place a bid, ask questions, and seller answers.
+
+<img src="screenshots/bid-and-questions.png" alt="Bid history and Q&A on an auction item" width="800" />
+
+### List an item
+
+Create a new auction listing (authenticated).
+
+<img src="screenshots/list-item.png" alt="List item form with name, description, starting bid, and end date" width="800" />
 
 ---
 
