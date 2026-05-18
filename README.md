@@ -6,7 +6,7 @@
 
 ## Overview
 
-Auctionary is an online auction platform where users register accounts, list items for auction, place bids, and interact with sellers through a question-and-answer flow. The Vue frontend consumes a Node.js REST API backed by SQLite, with most business rules enforced on the server.
+Auctionary is an online auction platform where users register accounts, list items for auction, place bids, and interact with sellers through a question-and-answers. The Vue frontend interacts with a Node.js REST API backed by SQLite.
 
 The project emphasizes **backend architecture**: REST endpoint design, request validation, relational data modelling, and session authentication. Primary development focus areas include API architecture, validation systems, database logic, and authentication.
 
